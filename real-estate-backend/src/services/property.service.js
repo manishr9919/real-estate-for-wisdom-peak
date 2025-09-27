@@ -55,8 +55,8 @@ const propertyService = {
 
   // Find other properties with same location & bhk
   const recommendations = await Property.find({
-    _id: { $ne: property._id },  // exclude the original property
-    location: property.location,
+    _id: { $nin: [property._id.toString()]},  // exclude the original property
+    location: property.location.trim(),
     bhk: property.bhk
   }).limit(3);
 
