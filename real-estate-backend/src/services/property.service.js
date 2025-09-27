@@ -1,5 +1,7 @@
-import Property from "../models/property.model.js";
+
 import paginate from "../utils/paginate.js";
+import mongoose from "mongoose";
+import Property from "../models/property.model.js";
 
 const propertyService = {
   getAll: async (page, limit) => {
@@ -11,7 +13,11 @@ const propertyService = {
   },
 
   getById: async (id) => {
-    return await Property.findById(id);
+    // handle both ObjectId and string
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      return await Property.findById(id);
+    }
+    return await Property.findOne({ _id: id });
   },
 
   search: async (query, bhk, location) => {
@@ -31,16 +37,31 @@ const propertyService = {
     return results;
   },
 
-  recommend: async (id) => {
-    const property = await Property.findById(id);
-    if (!property) return [];
+  recommend : async (id) => {
+  let property;
 
-    return await Property.find({
-      _id: { $ne: id },
-      location: property.location,
-      bhk: property.bhk,
-    }).limit(3);
-  },
+  // Try ObjectId first
+  if (mongoose.Types.ObjectId.isValid(id)) {
+    property = await Property.findById(id);
+  }
+
+  // Fallback to string _id
+  if (!property) {
+    property = await Property.findOne({ _id: id });
+  }
+
+  // If property not found, return empty array
+  if (!property) return [];
+
+  // Find other properties with same location & bhk
+  const recommendations = await Property.find({
+    _id: { $ne: property._id },  // exclude the original property
+    location: property.location,
+    bhk: property.bhk
+  }).limit(3);
+
+  return recommendations;
+}
 };
 
 export default propertyService;

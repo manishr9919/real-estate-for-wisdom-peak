@@ -13,6 +13,7 @@ export const getAllProperties = async (req, res, next) => {
 export const getPropertyById = async (req, res, next) => {
   try {
     const property = await propertyService.getById(req.params.id);
+    // console.log(req.params.id)
     if (!property) return res.status(404).json({ error: "Property not found" });
     res.json(property);
   } catch (error) {
@@ -33,8 +34,10 @@ export const searchProperties = async (req, res, next) => {
 export const getRecommendations = async (req, res, next) => {
   try {
     const recommendations = await propertyService.recommend(req.params.id);
+    console.log(req.params.id)
     res.json(recommendations);
   } catch (error) {
+    res.json("id not found")
     next(error);
   }
 };
